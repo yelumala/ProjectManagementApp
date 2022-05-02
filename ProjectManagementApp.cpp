@@ -25,7 +25,7 @@ class User
 class Resource
 {
     public:
-        Resource();
+        Resource(std::string pId);
         std::string getId();
     private:
         std::string mId;
@@ -91,8 +91,14 @@ class Task
         // Assigns an user to this task
         void assignUser(User *pUser);
         
+        // Unassign User from task
+        void unAssignUser();
+        
         // Assigns a Resource to this task
         void assignResource(Resource *pResource);
+        
+        // Unassign Resource from task
+        void unAssignResource();
         
     private:
         std::string mName;
@@ -119,7 +125,7 @@ class Project
         
         // Setters for start and end date
         void setStartDate(Clock pStartDate);
-        void setEndDate(Clock pEndDate);\
+        void setEndDate(Clock pEndDate);
         
         // Getters for start and end date
         Clock getStartDate();
@@ -131,11 +137,36 @@ class Project
         
         // Finds a task by its name
         Task *getTask(std::string pName);
-
+        
+        // methods for finding a task by name, and changing its status
+        void startTask(std::string pName);
+        void undoStartTask(std::string pName);
+        void holdOnTask(std::string pName);
+        void completeTask(std::string PName);
+        
+        // Adds one task as bloking task or "related to" task for another
+        void linkTasks(std::string pName, std::string pDependentTask, LinkType pType);
+        
+        // checks to avoid cyclic dependency
+        bool isCyclicDependencyExists(std::string pName, std::string pDependentTask);
+        
+        // Creates an User and adds to mUsers
+        void createUser(std::string pId, std::string pName);
+        
+        // Assigns User to a Task, calls Task::assignUser
+        void assignUserToTask(std::string pTask, std::string pUser);
+        
+        // Creates a Resource and adds to mResources
+        void createResource(std::string pId);
+        
+        // Assigns Resource to a Task, calls Task::assignResource
+        void assignResourceToTask(std::string pTask, std::string pResource);
         
     private:
         std::string mName;
         Clock mStartTime;
         Clock mEndTime;
         std::vector<Task> mTasks;
+        std::vector<User> mUsers;
+        std::vector<Resource> mResources;
 };
