@@ -19,9 +19,32 @@ class User
         std::string getId();
         std::string getName();
         
+        // Returns true if User is free
+        bool isFree();
+        
+        // Returns the number of tasks assigned to this user
+        int getTasksAssined();
+        
+        // Increases task count when task is assinged to this user
+        void increaseTaskCount();
+        
+        // Decrease task count from the user
+        void decreaseTaskCount();
+        
+        // Adds workload (time to complete) to this user
+        void addWorkLoad();
+        
+        // Decreases workload from the user
+        void removeWorkLoad();
+        
+        int getTaskCount();
+        double getWorkLoad();
+        
     private:
         std::string mId;
         std::string mName;
+        int mTasks;
+        double mWorkLoad;
 };
 
 // Resource for tasks
@@ -30,8 +53,19 @@ class Resource
     public:
         Resource(std::string pId);
         std::string getId();
+        
+        // Sets mIsAssigned to true;
+        void occupyResource();
+        
+        // Sets mIsAssigned to false;
+        void freeResource();
+        
+        // Returns true if Resource is free
+        bool isFree();
+        
     private:
         std::string mId;
+        bool mIsAssigned;
 };
 
 // Type of relation/dependency between tasks
@@ -91,14 +125,18 @@ class Task
         // The link can be a blocking link or relates to link
         void linkTask(Task *pTask, LinkType pType);
         
-        // Assigns an user to this task
-        void assignUser(User *pUser);
+        // Assigns an user to this task, adds task's weight to User
+        // and increases task count for User, returns true if successful
+        // returns false if no more tasks can be assigned to user
+        bool assignUser(User *pUser);
         
-        // Unassign User from task
+        // Unassign User from task, removes task's weight from User
+        // and decreases task count from User
         void unAssignUser();
         
-        // Assigns a Resource to this task
-        void assignResource(Resource *pResource);
+        // Assigns a Resource to this task, returns true if successful
+        // returns false if resoure is not available
+        bool assignResource(Resource *pResource);
         
         // Unassign Resource from task
         void unAssignResource();
@@ -126,6 +164,9 @@ class UserManager
         // Finds user by Id and returns
         User *getUser(std::string pId);
         
+        // Returns Users that are not assinged to any task
+        std::vector<User*> getFreeUsers();
+        
     private:
         std::vector<User*> mUsers;
 };
@@ -141,6 +182,9 @@ class ResourceManager
         
         // Finds Resource by its name
         Resource *getResource(std::string pName);
+        
+        // Returns Resources that are not assgined to any task
+        std::vector<Resource*> getFreeResources();
         
     private:
         std::vector<Resource*> mResources;
@@ -180,7 +224,7 @@ class Project
         
         // Creates a task with specified name and time to complete the task
         // The created task is added to list of tasks (mTasks)
-        void CreateTask(std::string pName, double pTimeToComplete);
+        Task *CreateTask(std::string pName, double pTimeToComplete);
         
         // Finds a task by its name
         Task *getTask(std::string pName);
