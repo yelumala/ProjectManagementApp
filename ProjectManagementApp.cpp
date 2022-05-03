@@ -102,7 +102,6 @@ class Task
     public:
         Task(
             std::string pName,
-            double pTimeToComplete,
             Status pStatus = Status::NEW,
             Task *pLinkedTask = nullptr,
             User *pUser = nullptr,
@@ -125,6 +124,12 @@ class Task
         // The link can be a blocking link or relates to link
         void linkTask(Task *pTask, LinkType pType);
         
+        // Removes linked task
+        void removeLinkedTask(Task *pLinkedTask);
+        
+        // Retruns all the linked tasks with type BLOCKEDBY
+        std::vector<Task *> getBlockingTasks();
+        
         // Assigns an user to this task, adds task's "time to complete" to User
         // and increases task count for User, returns true if successful
         // returns false if no more tasks can be assigned to user
@@ -145,14 +150,21 @@ class Task
         void setProgress(double pProgess);
         double getProgress();
         
+        // Returns true if getStatus() returns DONE
+        bool isCompleted();
+        
+        // Returns true if ratio between "time from now till pEndDate" and
+        // "remaining progress" is same. canCompleteBy() of all the blocking
+        // tasks are called recursively
+        bool canCompleteBy(Clock pEndDate);
+
     private:
         std::string mName;
-        double mTimeToComple;
         Clock mStartTime;
         Clock mEndTime;
         Status mStatus;
         double mProgress;
-        Task *mLinkedTask;
+        std::vector<Task *>mLinkedTasks;
         User *mUser;
         Resource *mResource;
 };
