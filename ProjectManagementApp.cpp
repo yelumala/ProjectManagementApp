@@ -16,6 +16,9 @@ class User
 {
     public:
         User(std::string pId, std::string pName);
+        std::string getId();
+        std::string getName();
+        
     private:
         std::string mId;
         std::string mName;
@@ -49,7 +52,7 @@ class TaskLink
 };
 
 // Progression Status of Task
-enum TaskStatus
+enum Status
 {
     NEW = 0,
     TODO,
@@ -66,7 +69,7 @@ class Task
         Task(
             std::string pName,
             double pTimeToComplete,
-            TaskStatus pStatus = TaskStatus::NEW,
+            Status pStatus = Status::NEW,
             Task *pLinkedTask = nullptr,
             User *pUser = nullptr,
             Resource *pResource = nullptr);
@@ -80,9 +83,9 @@ class Task
         Clock getEndDate();
         
         // Sets the status of a task
-        void setStatus(TaskStatus pStatus);
+        void setStatus(Status pStatus);
         // returns status of a task
-        TaskStatus getStatus();
+        Status getStatus();
         
         // Links another task to the current Task
         // The link can be a blocking link or relates to link
@@ -105,10 +108,42 @@ class Task
         double mTimeToComple;
         Clock mStartTime;
         Clock mEndTime;
-        TaskStatus mStatus;
+        Status mStatus;
         Task *mLinkedTask;
         User *mUser;
         Resource *mResource;
+};
+
+// Creates and manages Users
+class UserManager
+{
+    public:
+        UserManager();
+        
+        // Creates an User and adds to mUsers
+        User *createUser(std::string pId, std::string pName);
+
+        // Finds user by Id and returns
+        User *getUser(std::string pId);
+        
+    private:
+        std::vector<User*> mUsers;
+};
+
+// Creates and manages Resources
+class ResourceManager
+{
+    public:
+        ResourceManager();
+        
+        // Creates a Resource and adds to mResources
+        Resource *createResource(std::string pId);
+        
+        // Finds Resource by its name
+        Resource *getResource(std::string pName);
+        
+    private:
+        std::vector<Resource*> mResources;
 };
 
 // A Project is a set of Tasks. A project's completion time depends on its tasks'
@@ -116,7 +151,13 @@ class Task
 class Project
 {
     public:
-        Project(std::string pName, Clock pStartTime, Clock pEndTime);
+        Project(
+            std::string pName,
+            Clock pStartTime,
+            Clock pEndTime,
+            ResourceManager *pResourceManager,
+            UserManager *pUserManager,
+            Status pStatus = Status::NEW);
         
         // Checks if the project can be completed by given pEndDate
         // If all the tasks can be completed within the specified date adhering
@@ -131,6 +172,12 @@ class Project
         Clock getStartDate();
         Clock getEndDate();
         
+        // Sets the status of a Project
+        void setStatus(Status pStatus);
+        
+        // returns status of a Project
+        Status getStatus();
+        
         // Creates a task with specified name and time to complete the task
         // The created task is added to list of tasks (mTasks)
         void CreateTask(std::string pName, double pTimeToComplete);
@@ -138,35 +185,59 @@ class Project
         // Finds a task by its name
         Task *getTask(std::string pName);
         
-        // methods for finding a task by name, and changing its status
-        void startTask(std::string pName);
-        void undoStartTask(std::string pName);
-        void holdOnTask(std::string pName);
-        void completeTask(std::string PName);
+        // methods for changing Task status, calls Task::setStatus(Status pStatus);
+        void startTask(Task *pTask);
+        void undoStartTask(Task *pTask);
+        void holdOnTask(Task *pTask);
+        void completeTask(Task *pTask);
         
         // Adds one task as bloking task or "related to" task for another
-        void linkTasks(std::string pName, std::string pDependentTask, LinkType pType);
+        void linkTasks(Task *pTask, Task *pDependentTask, LinkType pType);
         
         // checks to avoid cyclic dependency
-        bool isCyclicDependencyExists(std::string pName, std::string pDependentTask);
+        bool isCyclicDependencyExists(Task *pTask, Task *pDependentTask);
         
-        // Creates an User and adds to mUsers
-        void createUser(std::string pId, std::string pName);
+        // Gets the user from UserManager and assigns User to a Task, calls Task::assignUser
+        void assignUserToTask(Task *pTask, std::string pUser);
         
-        // Assigns User to a Task, calls Task::assignUser
-        void assignUserToTask(std::string pTask, std::string pUser);
-        
-        // Creates a Resource and adds to mResources
-        void createResource(std::string pId);
-        
-        // Assigns Resource to a Task, calls Task::assignResource
-        void assignResourceToTask(std::string pTask, std::string pResource);
+        // Gets the Resource from ResourceManager and assigns Resource to a Task,
+        // calls Task::assignResource
+        void assignResourceToTask(Task *pTask, std::string pResource);
         
     private:
         std::string mName;
         Clock mStartTime;
         Clock mEndTime;
-        std::vector<Task> mTasks;
-        std::vector<User> mUsers;
-        std::vector<Resource> mResources;
+        Status mStatus;
+        std::vector<Task*> mTasks;
+        ResourceManager *mResourceManager;
+        UserManager *mUserManager;
+};
+
+// Creates and manages Project
+class ProjectManager
+{
+    public:
+        // Initializes mResourceManager, mUserManager
+        ProjectManager();
+        
+        // Creates a Project by passing mResourceManager and mUserManager
+        // and adds to mProjects
+        Project createProject(
+            std::string pName,
+            Clock pStartTime,
+            Clock pEndTime);
+        
+        // Finds Project by its name
+        Project getProject(std::string pName);
+        
+        // methods for changing Project status calls Project::setStatus()
+        void startProject(Project *pProject);
+        void undoStartProject(Project *pProject);
+        void completeProject(Project *pProject);
+        
+    private:
+        std::vector<Project> mProjects;
+        ResourceManager *mResourceManager;
+        UserManager *mUserManager;
 };
