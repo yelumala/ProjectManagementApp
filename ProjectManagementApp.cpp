@@ -125,21 +125,25 @@ class Task
         // The link can be a blocking link or relates to link
         void linkTask(Task *pTask, LinkType pType);
         
-        // Assigns an user to this task, adds task's weight to User
+        // Assigns an user to this task, adds task's "time to complete" to User
         // and increases task count for User, returns true if successful
         // returns false if no more tasks can be assigned to user
         bool assignUser(User *pUser);
         
-        // Unassign User from task, removes task's weight from User
+        // Unassign User from task, removes task's "time to complete" from User
         // and decreases task count from User
         void unAssignUser();
         
-        // Assigns a Resource to this task, returns true if successful
-        // returns false if resoure is not available
+        // Assigns a Resource to this task by calling Resource::occupyResource,
+        //returns true if successful, returns false if resoure is not available
         bool assignResource(Resource *pResource);
         
         // Unassign Resource from task
         void unAssignResource();
+        
+        // Changes the progress percentage of this task
+        void setProgress(double pProgess);
+        double getProgress();
         
     private:
         std::string mName;
@@ -147,6 +151,7 @@ class Task
         Clock mStartTime;
         Clock mEndTime;
         Status mStatus;
+        double mProgress;
         Task *mLinkedTask;
         User *mUser;
         Resource *mResource;
@@ -167,6 +172,9 @@ class UserManager
         // Returns Users that are not assinged to any task
         std::vector<User*> getFreeUsers();
         
+        // Removes user from mUsers and deletes it
+        void deleteUser(std::string pId);
+        
     private:
         std::vector<User*> mUsers;
 };
@@ -185,6 +193,9 @@ class ResourceManager
         
         // Returns Resources that are not assgined to any task
         std::vector<Resource*> getFreeResources();
+        
+        // Removes Resource from mResources and deletes its
+        void deleteResource(std::string pResource);
         
     private:
         std::vector<Resource*> mResources;
@@ -242,17 +253,23 @@ class Project
         bool isCyclicDependencyExists(Task *pTask, Task *pDependentTask);
         
         // Gets the user from UserManager and assigns User to a Task, calls Task::assignUser
-        void assignUserToTask(Task *pTask, std::string pUser);
+        // retruns true if successful otherwise false
+        bool assignUserToTask(Task *pTask, std::string pUser);
         
         // Gets the Resource from ResourceManager and assigns Resource to a Task,
-        // calls Task::assignResource
-        void assignResourceToTask(Task *pTask, std::string pResource);
+        // calls Task::assignResource, retruns true if successful otherwise false
+        bool assignResourceToTask(Task *pTask, std::string pResource);
+        
+        // Calculates and returns progress percentage of this Project
+        // Progress of Project is calculated from progress of all the tasks
+        double getProgress();
         
     private:
         std::string mName;
         Clock mStartTime;
         Clock mEndTime;
         Status mStatus;
+        double mProgress;
         std::vector<Task*> mTasks;
         ResourceManager *mResourceManager;
         UserManager *mUserManager;
