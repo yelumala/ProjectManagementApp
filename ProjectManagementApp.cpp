@@ -6,6 +6,7 @@
 #include <vector>
 #include <chrono>
 #include <ctime>
+#include <memory>
 
 using namespace std;
 
@@ -80,7 +81,6 @@ class Cost : public Resource
 {
     public:
         Cost(std::string pId);
-
 };
 
 // Material as Resource
@@ -242,6 +242,7 @@ class ResourceManager
         std::vector<Resource*> mResources;
 };
 
+class ProjectManager;
 // A Project is a set of Tasks. A project's completion time depends on its tasks'
 // completion time.
 class Project
@@ -251,8 +252,6 @@ class Project
             std::string pName,
             Clock pStartTime,
             Clock pEndTime,
-            ResourceManager *pResourceManager,
-            UserManager *pUserManager,
             Status pStatus = Status::NEW);
         
         // Checks if the project can be completed by given pEndDate
@@ -293,17 +292,22 @@ class Project
         // checks to avoid cyclic dependency
         bool isCyclicDependencyExists(Task *pTask, Task *pDependentTask);
         
-        // Gets the user from UserManager and assigns User to a Task, calls Task::assignUser
+        // Gets the user from UserManager using ProjectManager and
+        // assigns User to a Task, calls Task::assignUser
         // retruns true if successful otherwise false
         bool assignUserToTask(Task *pTask, std::string pUser);
         
-        // Gets the Resource from ResourceManager and assigns Resource to a Task,
-        // calls Task::assignResource, retruns true if successful otherwise false
+        // Gets the Resource from ResourceManager using ProjectManager
+        // and assigns Resource to a Task, calls Task::assignResource,
+        // retruns true if successful otherwise false
         bool assignResourceToTask(Task *pTask, std::string pResource);
         
         // Calculates and returns progress percentage of this Project
         // Progress of Project is calculated from progress of all the tasks
         double getProgress();
+        
+        // sets ProjectManager
+        void setProjectManager(shared_ptr<ProjectManager> &);
         
     private:
         std::string mName;
@@ -312,8 +316,7 @@ class Project
         Status mStatus;
         double mProgress;
         std::vector<Task*> mTasks;
-        ResourceManager *mResourceManager;
-        UserManager *mUserManager;
+        shared_ptr<ProjectManager> mProjectManager;
 };
 
 // Creates and manages Project
@@ -323,8 +326,8 @@ class ProjectManager
         // Initializes mResourceManager, mUserManager
         ProjectManager();
         
-        // Creates a Project by passing mResourceManager and mUserManager
-        // and adds to mProjects
+        // Creates a Project by passing shared_ptr of this ProjectManager
+        // and adds to mProjects.
         Project createProject(
             std::string pName,
             Clock pStartTime,
@@ -337,6 +340,12 @@ class ProjectManager
         void startProject(Project *pProject);
         void undoStartProject(Project *pProject);
         void completeProject(Project *pProject);
+        
+        // Using UserManager retrieves User
+        User *getUser(std::string pUser);
+        
+        // Using ResourceManager retrieves Resource
+        Resource *getResource(std::string pResource);
         
     private:
         std::vector<Project> mProjects;
