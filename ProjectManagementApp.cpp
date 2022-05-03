@@ -68,6 +68,35 @@ class Resource
         bool mIsAssigned;
 };
 
+// Working Site as Resource
+class Site : public Resource
+{
+    public:
+        Site(std::string pId);
+};
+
+// Cost as Resource
+class Cost : public Resource
+{
+    public:
+        Cost(std::string pId);
+
+};
+
+// Material as Resource
+class Material : public Resource
+{
+    public:
+        Material(std::string pId);
+};
+
+enum ResourceType
+{
+    SITE =0,
+    COST,
+    MATERIAL
+};
+
 // Type of relation/dependency between tasks
 enum LinkType
 {
@@ -197,8 +226,8 @@ class ResourceManager
     public:
         ResourceManager();
         
-        // Creates a Resource and adds to mResources
-        Resource *createResource(std::string pId);
+        // Creates a Resource of ResourceType and adds to mResources
+        Resource *createResource(std::string pId, ResourceType pType);
         
         // Finds Resource by its name
         Resource *getResource(std::string pName);
